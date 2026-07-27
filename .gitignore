@@ -39,8 +39,10 @@ env.sh
 .env
 secrets.auto.tfvars
 
-# Keep the dependency lock file committed (recommended); do NOT ignore it:
-# .terraform.lock.hcl
+# Terraform dependency lock file (ignored per user preference; note: committing
+# it is generally recommended for reproducible provider versions).
+.terraform.lock.hcl
+**/.terraform.lock.hcl
 
 # --- OS / editor noise ---
 .DS_Store
