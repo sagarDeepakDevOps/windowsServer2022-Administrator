@@ -1,0 +1,21 @@
+# Copy this file to terraform.auto.tfvars and adjust values.
+# The GitHub token is NOT set here - export it instead:
+#   export GITHUB_TOKEN='ghp_...'
+
+github_owner          = "sagarDeepakDevOps"
+repository_name       = "windowsServer2022-Administrator"
+repository_description = "Infrastructure-as-Code for my Windows Server 2022 lab on KVM/libvirt, managed with Terraform."
+visibility            = "public"
+default_branch        = "main"
+
+gitignore_template = "Terraform"
+license_template   = "mit"
+
+topics = ["terraform", "libvirt", "kvm", "windows-server", "iac", "homelab"]
+
+has_issues   = true
+has_wiki     = false
+has_projects = false
+
+delete_branch_on_merge   = true
+enable_branch_protection = false

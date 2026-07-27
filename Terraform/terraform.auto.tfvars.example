@@ -1,0 +1,32 @@
+# Copy this file to terraform.auto.tfvars and fill in real values.
+# terraform.auto.tfvars is git-ignored so your secrets never get committed.
+# Alternatively, export passwords as environment variables:
+#   export TF_VAR_windows_password='...'
+#   export TF_VAR_linux_password='...'
+
+windows_vms = {
+  "AD-DS-vm" = {
+    memory_mb    = 2048
+    vcpus        = 2
+    disk_size_gb = 20
+    hostname     = "AD-DS-vm"
+  }
+}
+
+windows_disk_pool       = "default"
+windows_iso_path        = "/path/to/SERVER_EVAL_x64FRE_en-us.iso"
+windows_extra_iso_paths = [""]
+windows_network_mode    = "nat"
+windows_network_name    = "win2022-lab"
+windows_bridge_name     = ""
+windows_timezone        = "UTC"
+windows_username        = "Administrator"
+windows_password        = "CHANGE_ME"
+
+linux_username = "ubuntu"
+linux_password = "CHANGE_ME"
+
+network_mode = "nat"
+network_name = "win2022-lab"
+network_cidr = "192.168.150.0/24"
+bridge_name  = ""
