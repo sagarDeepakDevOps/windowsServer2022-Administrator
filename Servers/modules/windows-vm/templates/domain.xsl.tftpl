@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Rendered by Terraform (templatefile) and applied by the libvirt provider to the
+  generated domain XML. The dmacvicar/libvirt 0.8 provider has no native CD-ROM or
+  boot-order support, so this stylesheet:
+    1. Injects the virtualization <features> (acpi/apic/hyperv) required by Windows.
+    2. Moves the OS boot disk onto the SATA bus (Windows Setup sees it natively).
+    3. Attaches the Windows install DVD and the autounattend answer-file DVD as
+       SATA CD-ROMs, with the install DVD as the first boot device.
+-->
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output omit-xml-declaration="yes" indent="yes"/>
+
+  <!-- Identity transform: copy everything by default. -->
+  <xsl:template match="@*|node()">
+    <xsl:copy>
+      <xsl:apply-templates select="@*|node()"/>
+    </xsl:copy>
+  </xsl:template>
+
+  <!-- Inject <features> before <devices> and append the install/answer CD-ROMs. -->
+  <xsl:template match="devices">
+    <features>
+      <acpi/>
+      <apic/>
+      <hyperv/>
+    </features>
+    <xsl:copy>
+      <xsl:apply-templates select="@*|node()"/>
+      <!-- Windows Server installation media (first boot device). -->
+      <disk type="file" device="cdrom">
+        <driver name="qemu" type="raw"/>
+        <source file="${windows_iso}"/>
+        <target dev="sdb" bus="sata"/>
+        <readonly/>
+        <boot order="1"/>
+      </disk>
+      <!-- Autounattend answer-file media (Windows Setup auto-detects autounattend.xml). -->
+      <disk type="file" device="cdrom">
+        <driver name="qemu" type="raw"/>
+        <source file="${autounattend_iso}"/>
+        <target dev="sdc" bus="sata"/>
+        <readonly/>
+      </disk>
+    </xsl:copy>
+  </xsl:template>
+
+  <!-- Put the OS boot disk on the SATA bus and make it the second boot device. -->
+  <xsl:template match="devices/disk[@device='disk']">
+    <xsl:copy>
+      <xsl:apply-templates select="@*|node()[not(self::target)]"/>
+      <target dev="sda" bus="sata"/>
+      <boot order="2"/>
+    </xsl:copy>
+  </xsl:template>
+
+  <!-- Drop any OS-level <boot> so per-device boot order is authoritative. -->
+  <xsl:template match="os/boot"/>
+</xsl:stylesheet>

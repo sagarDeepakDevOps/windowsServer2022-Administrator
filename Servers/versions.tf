@@ -8,5 +8,13 @@ terraform {
       source  = "dmacvicar/libvirt"
       version = "~> 0.8.0"
     }
+    local = {
+      source  = "hashicorp/local"
+      version = "~> 2.4"
+    }
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.2"
+    }
   }
 }

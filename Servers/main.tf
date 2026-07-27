@@ -33,6 +33,8 @@ module "windows_vm" {
   timezone          = var.windows_timezone
   username          = var.windows_username
   password          = var.windows_password
+  windows_edition   = var.windows_edition
+  locale            = var.windows_locale
   firmware_path     = var.windows_firmware_path
   base_image_path   = module.storage.windows_disk_paths[each.key]
   network_interface = module.network.primary_network_name

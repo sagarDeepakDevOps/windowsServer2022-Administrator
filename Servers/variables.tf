@@ -98,6 +98,18 @@ variable "windows_firmware_path" {
   default     = "/usr/share/OVMF/OVMF_CODE_4M.fd"
 }
 
+variable "windows_edition" {
+  description = "Windows image name to install unattended. Must match an image name in the ISO. For the Server 2022 eval ISO the Standard GUI image is 'Windows Server 2022 Standard Evaluation (Desktop Experience)'."
+  type        = string
+  default     = "Windows Server 2022 Standard Evaluation (Desktop Experience)"
+}
+
+variable "windows_locale" {
+  description = "Locale/language used during unattended Windows Setup."
+  type        = string
+  default     = "en-US"
+}
+
 variable "linux_vm_name" {
   description = "Name of the Ubuntu Server VM."
   type        = string

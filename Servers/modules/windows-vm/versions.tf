@@ -4,5 +4,11 @@ terraform {
     libvirt = {
       source = "dmacvicar/libvirt"
     }
+    local = {
+      source = "hashicorp/local"
+    }
+    null = {
+      source = "hashicorp/null"
+    }
   }
 }

@@ -88,3 +88,14 @@ variable "network_interface" {
   description = "Name of the libvirt network that should be attached."
   type        = string
 }
+
+variable "windows_edition" {
+  description = "Windows image name to install (must match an image in the ISO, e.g. the value shown by DISM /Get-WimInfo). Used by the autounattend answer file."
+  type        = string
+}
+
+variable "locale" {
+  description = "Locale/language used during unattended Windows Setup (e.g. en-US)."
+  type        = string
+  default     = "en-US"
+}
