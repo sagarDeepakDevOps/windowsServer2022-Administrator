@@ -7,6 +7,7 @@ resource "libvirt_network" "nat_network" {
   name      = var.network_name
   mode      = "nat"
   addresses = [var.network_cidr]
+  autostart = true
 
   dhcp {
     enabled = true
@@ -24,4 +25,5 @@ resource "libvirt_network" "bridge_network" {
   mode      = "bridge"
   bridge    = var.bridge_name
   addresses = []
+  autostart = true
 }
