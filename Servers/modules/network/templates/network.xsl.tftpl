@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Rendered by Terraform (templatefile) and applied by the libvirt provider to the
+  generated network XML. The dmacvicar/libvirt 0.8 provider's dhcp block only
+  exposes `enabled`, so this stylesheet injects one <host> static DHCP
+  reservation per entry, binding a fixed IP to a MAC (dnsmasq then always hands
+  that guest the same address).
+-->
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output omit-xml-declaration="yes" indent="yes"/>
+
+  <!-- Identity transform: copy everything by default. -->
+  <xsl:template match="@*|node()">
+    <xsl:copy>
+      <xsl:apply-templates select="@*|node()"/>
+    </xsl:copy>
+  </xsl:template>
+
+  <!-- Append static host reservations inside the existing <dhcp> block. -->
+  <xsl:template match="dhcp">
+    <xsl:copy>
+      <xsl:apply-templates select="@*|node()"/>
+%{ for r in reservations ~}
+      <host mac="${r.mac}" name="${r.hostname}" ip="${r.ip}"/>
+%{ endfor ~}
+    </xsl:copy>
+  </xsl:template>
+</xsl:stylesheet>

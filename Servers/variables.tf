@@ -3,10 +3,13 @@
 variable "windows_vms" {
   description = "Map of Windows Server VMs to create. The map key is used as the VM/domain name and must be unique."
   type = map(object({
-    memory_mb    = optional(number, 2048)
-    vcpus        = optional(number, 2)
-    disk_size_gb = optional(number, 40)
-    hostname     = optional(string)
+    memory_mb            = optional(number, 2048)
+    vcpus                = optional(number, 2)
+    disk_size_gb         = optional(number, 40)
+    hostname             = optional(string)
+    attach_install_media = optional(bool, true)
+    mac_address          = optional(string, "")
+    ip_address           = optional(string, "")
   }))
   default = {
     "AD-DS-vm" = {

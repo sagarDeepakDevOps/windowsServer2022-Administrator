@@ -10,7 +10,10 @@ locals {
 }
 
 # Render the answer file from the template using the per-VM settings.
+# Only generated while install media is attached (a fresh, uninstalled VM).
 resource "local_file" "autounattend" {
+  count = var.attach_install_media ? 1 : 0
+
   filename             = local.answer_file
   file_permission      = "0644"
   directory_permission = "0755"
@@ -29,8 +32,10 @@ resource "local_file" "autounattend" {
 # automatically searches attached media for this file. xorriso is used because
 # genisoimage/mkisofs are not installed on this host.
 resource "null_resource" "autounattend_iso" {
+  count = var.attach_install_media ? 1 : 0
+
   triggers = {
-    answer_hash = local_file.autounattend.content_sha256
+    answer_hash = local_file.autounattend[0].content_sha256
     iso_path    = local.autounattend_iso
     src_dir     = local.answer_src_dir
   }
@@ -70,6 +75,7 @@ resource "libvirt_domain" "windows_vm" {
 
   network_interface {
     network_name   = var.network_interface
+    mac            = var.mac_address != "" ? var.mac_address : null
     wait_for_lease = false
   }
 
@@ -85,12 +91,14 @@ resource "libvirt_domain" "windows_vm" {
     autoport    = true
   }
 
-  # Rendered XSLT injects <features>, moves the boot disk to SATA, and attaches
-  # the Windows install DVD + autounattend answer-file DVD with boot order.
+  # Rendered XSLT injects <features>, moves the boot disk to SATA, swaps the NIC
+  # to an emulated Intel e1000e (Windows has no inbox virtio-net driver), and
+  # attaches the install/answer DVDs with boot order only when installing.
   xml {
     xslt = templatefile("${path.module}/templates/domain.xsl.tftpl", {
-      windows_iso      = var.iso_path
-      autounattend_iso = local.autounattend_iso
+      windows_iso           = var.iso_path
+      autounattend_iso      = local.autounattend_iso
+      attach_install_media  = var.attach_install_media
     })
   }
 

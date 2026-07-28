@@ -27,6 +27,7 @@
     </features>
     <xsl:copy>
       <xsl:apply-templates select="@*|node()"/>
+%{ if attach_install_media ~}
       <!-- Windows Server installation media (first boot device). -->
       <disk type="file" device="cdrom">
         <driver name="qemu" type="raw"/>
@@ -42,16 +43,30 @@
         <target dev="sdc" bus="sata"/>
         <readonly/>
       </disk>
+%{ endif ~}
     </xsl:copy>
   </xsl:template>
 
-  <!-- Put the OS boot disk on the SATA bus and make it the second boot device. -->
+  <!-- Put the OS boot disk on the SATA bus. It is the second boot device while
+       the install DVD is present, and the first once install media is removed. -->
   <xsl:template match="devices/disk[@device='disk']">
     <xsl:copy>
       <xsl:apply-templates select="@*|node()[not(self::target)]"/>
       <target dev="sda" bus="sata"/>
-      <boot order="2"/>
+      <boot order="${attach_install_media ? 2 : 1}"/>
     </xsl:copy>
+  </xsl:template>
+
+  <!-- Windows Server has no inbox virtio-net driver, so present an emulated
+       Intel e1000e NIC that Windows drives out of the box. -->
+  <xsl:template match="interface/model">
+    <model type="e1000e"/>
+  </xsl:template>
+
+  <!-- Replace the default Cirrus adapter with QXL: many more resolutions/aspect
+       ratios and much better performance (works with the Windows inbox driver). -->
+  <xsl:template match="video/model">
+    <model type="qxl" ram="65536" vram="65536" vgamem="16384" heads="1" primary="yes"/>
   </xsl:template>
 
   <!-- Drop any OS-level <boot> so per-device boot order is authoritative. -->

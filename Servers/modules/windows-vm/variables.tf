@@ -99,3 +99,15 @@ variable "locale" {
   type        = string
   default     = "en-US"
 }
+
+variable "attach_install_media" {
+  description = "Attach the Windows install DVD + autounattend answer-file DVD and boot from them. Set true for a fresh (uninstalled) VM; set false once Windows is installed so the VM boots straight from disk."
+  type        = bool
+  default     = true
+}
+
+variable "mac_address" {
+  description = "Fixed MAC address for the primary NIC. Empty lets libvirt generate one (which yields a different DHCP IP on every recreate)."
+  type        = string
+  default     = ""
+}

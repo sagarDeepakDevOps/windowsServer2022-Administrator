@@ -22,3 +22,13 @@ variable "bridge_name" {
   type        = string
   default     = ""
 }
+
+variable "dhcp_reservations" {
+  description = "Static DHCP reservations injected into the NAT network's <dhcp> block. Each binds a fixed IP to a MAC so the guest always gets the same address."
+  type = list(object({
+    hostname = string
+    mac      = string
+    ip       = string
+  }))
+  default = []
+}
