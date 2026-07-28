@@ -10,6 +10,16 @@ variable "windows_vms" {
     attach_install_media = optional(bool, true)
     mac_address          = optional(string, "")
     ip_address           = optional(string, "")
+    # Mark exactly one VM as the AD DS domain controller. Its IP is advertised to
+    # all guests as the DNS server (DHCP option 6) so members can join the domain.
+    is_domain_controller = optional(bool, false)
+    # Optional per-VM overrides; fall back to the global windows_* values.
+    username = optional(string)
+    password = optional(string)
+    timezone = optional(string)
+    edition  = optional(string)
+    locale   = optional(string)
+    iso_path = optional(string)
   }))
   default = {
     "AD-DS-vm" = {
@@ -34,6 +44,21 @@ variable "windows_vms" {
     condition     = alltrue([for v in values(var.windows_vms) : v.disk_size_gb >= 10])
     error_message = "Each Windows VM disk_size_gb must be at least 10 GB."
   }
+
+  validation {
+    condition     = alltrue([for v in values(var.windows_vms) : v.password != null && v.password != ""])
+    error_message = "Each Windows VM must define its own non-empty password."
+  }
+
+  validation {
+    condition     = length([for v in values(var.windows_vms) : v if v.is_domain_controller]) <= 1
+    error_message = "At most one Windows VM may set is_domain_controller = true."
+  }
+
+  validation {
+    condition     = alltrue([for v in values(var.windows_vms) : v.ip_address != "" if v.is_domain_controller])
+    error_message = "The domain controller VM (is_domain_controller = true) must set a static ip_address so it can be advertised as the DNS server."
+  }
 }
 
 variable "windows_disk_pool" {
@@ -48,35 +73,6 @@ variable "windows_iso_path" {
   default     = "/home/deepak/Downloads/SERVER_EVAL_x64FRE_en-us.iso"
 }
 
-variable "windows_extra_iso_paths" {
-  description = "Optional additional ISO files to attach to the Windows VM."
-  type        = list(string)
-  default     = []
-}
-
-variable "windows_network_mode" {
-  description = "Networking mode for the Windows VM. Use nat initially or bridge later."
-  type        = string
-  default     = "nat"
-
-  validation {
-    condition     = contains(["nat", "bridge"], var.windows_network_mode)
-    error_message = "windows_network_mode must be either nat or bridge."
-  }
-}
-
-variable "windows_network_name" {
-  description = "Name of the libvirt network to use for the Windows VM when nat mode is selected."
-  type        = string
-  default     = "default"
-}
-
-variable "windows_bridge_name" {
-  description = "Bridge device name used for bridge networking when Windows is moved off NAT."
-  type        = string
-  default     = ""
-}
-
 variable "windows_timezone" {
   description = "Timezone configured for the Windows guest."
   type        = string
@@ -87,12 +83,6 @@ variable "windows_username" {
   description = "Administrative username for the Windows guest."
   type        = string
   default     = "Administrator"
-}
-
-variable "windows_password" {
-  description = "Administrative password for the Windows guest. Set via terraform.auto.tfvars (git-ignored) or the TF_VAR_windows_password environment variable. No default so secrets are never committed."
-  type        = string
-  sensitive   = true
 }
 
 variable "windows_firmware_path" {

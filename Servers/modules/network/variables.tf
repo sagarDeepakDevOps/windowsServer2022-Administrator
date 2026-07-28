@@ -32,3 +32,9 @@ variable "dhcp_reservations" {
   }))
   default = []
 }
+
+variable "dns_server_ip" {
+  description = "If set, advertise this IP to all NAT guests as their DNS server via DHCP option 6 (using libvirt's dnsmasq namespace). Point this at the AD DS domain controller so domain members resolve the AD domain. Empty = keep libvirt's built-in DNS at the gateway (.1)."
+  type        = string
+  default     = ""
+}

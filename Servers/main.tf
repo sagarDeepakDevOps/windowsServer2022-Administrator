@@ -13,6 +13,13 @@ locals {
       ip       = cfg.ip_address
     } if cfg.mac_address != "" && cfg.ip_address != ""
   ]
+
+  # IP of the AD DS domain controller (the VM flagged is_domain_controller).
+  # Advertised to all guests as their DNS server so members can join the domain.
+  # `one()` returns the single match or null (and errors if more than one).
+  domain_controller_ip = one([
+    for name, cfg in var.windows_vms : cfg.ip_address if cfg.is_domain_controller
+  ])
 }
 
 module "network" {
@@ -23,34 +30,30 @@ module "network" {
   network_cidr      = var.network_cidr
   bridge_name       = local.common_bridge_name
   dhcp_reservations = local.windows_dhcp_reservations
+  dns_server_ip     = local.domain_controller_ip != null ? local.domain_controller_ip : ""
 }
 
 module "windows_vm" {
   source   = "./modules/windows-vm"
   for_each = var.windows_vms
 
-  vm_name           = each.key
-  memory_mb         = each.value.memory_mb
-  vcpus             = each.value.vcpus
-  disk_size_gb      = each.value.disk_size_gb
-  disk_pool         = var.windows_disk_pool
-  iso_path          = var.windows_iso_path
-  extra_iso_paths   = var.windows_extra_iso_paths
-  network_mode      = var.windows_network_mode
-  network_name      = var.windows_network_name
-  bridge_name       = var.windows_bridge_name
+  vm_name              = each.key
+  memory_mb            = each.value.memory_mb
+  vcpus                = each.value.vcpus
+  disk_size_gb         = each.value.disk_size_gb
+  iso_path             = coalesce(each.value.iso_path, var.windows_iso_path)
   hostname             = coalesce(each.value.hostname, each.key)
-  timezone             = var.windows_timezone
-  username             = var.windows_username
-  password             = var.windows_password
-  windows_edition      = var.windows_edition
-  locale               = var.windows_locale
+  timezone             = coalesce(each.value.timezone, var.windows_timezone)
+  username             = coalesce(each.value.username, var.windows_username)
+  password             = each.value.password
+  windows_edition      = coalesce(each.value.edition, var.windows_edition)
+  locale               = coalesce(each.value.locale, var.windows_locale)
   attach_install_media = each.value.attach_install_media
   mac_address          = each.value.mac_address
   firmware_path        = var.windows_firmware_path
-  base_image_path   = module.storage.windows_disk_paths[each.key]
-  network_interface = module.network.primary_network_name
-  depends_on        = [module.network]
+  base_image_path      = module.storage.windows_disk_paths[each.key]
+  network_interface    = module.network.primary_network_name
+  depends_on           = [module.network]
 }
 
 # module "linux_vm" {

@@ -19,38 +19,9 @@ variable "disk_size_gb" {
   type        = number
 }
 
-variable "disk_pool" {
-  description = "Storage pool used for the Windows disk."
-  type        = string
-}
-
 variable "iso_path" {
   description = "Path to the installation ISO for Windows Server."
   type        = string
-}
-
-variable "extra_iso_paths" {
-  description = "Optional additional ISO files to attach to the VM."
-  type        = list(string)
-  default     = []
-}
-
-variable "network_mode" {
-  description = "Networking mode for the VM."
-  type        = string
-  default     = "nat"
-}
-
-variable "network_name" {
-  description = "Name of the libvirt network to attach when using NAT."
-  type        = string
-  default     = "default"
-}
-
-variable "bridge_name" {
-  description = "Bridge device name used for bridge networking later."
-  type        = string
-  default     = ""
 }
 
 variable "hostname" {

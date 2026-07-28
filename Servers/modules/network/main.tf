@@ -17,12 +17,14 @@ resource "libvirt_network" "nat_network" {
     enabled = true
   }
 
-  # Inject static DHCP reservations (fixed IP per MAC) when any are defined.
+  # Inject static DHCP reservations (fixed IP per MAC) and/or a custom DNS server
+  # (DHCP option 6) when either is configured.
   dynamic "xml" {
-    for_each = length(var.dhcp_reservations) > 0 ? [1] : []
+    for_each = (length(var.dhcp_reservations) > 0 || var.dns_server_ip != "") ? [1] : []
     content {
       xslt = templatefile("${path.module}/templates/network.xsl.tftpl", {
         reservations = var.dhcp_reservations
+        dns_server   = var.dns_server_ip
       })
     }
   }

@@ -5,8 +5,15 @@
   exposes `enabled`, so this stylesheet injects one <host> static DHCP
   reservation per entry, binding a fixed IP to a MAC (dnsmasq then always hands
   that guest the same address).
+
+  When dns_server is set, it also injects a dnsmasq option (DHCP option 6) via
+  libvirt's dnsmasq namespace so every guest is told to use that address as its
+  DNS server. This points domain members at the AD DS domain controller.
 -->
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:dnsmasq="http://libvirt.org/schemas/network/dnsmasq/1.0"
+    exclude-result-prefixes="dnsmasq">
   <xsl:output omit-xml-declaration="yes" indent="yes"/>
 
   <!-- Identity transform: copy everything by default. -->
@@ -25,4 +32,16 @@
 %{ endfor ~}
     </xsl:copy>
   </xsl:template>
+%{ if dns_server != "" ~}
+
+  <!-- Advertise a custom DNS server to all guests via dnsmasq DHCP option 6. -->
+  <xsl:template match="network">
+    <xsl:copy>
+      <xsl:apply-templates select="@*|node()"/>
+      <dnsmasq:options>
+        <dnsmasq:option value="dhcp-option=6,${dns_server}"/>
+      </dnsmasq:options>
+    </xsl:copy>
+  </xsl:template>
+%{ endif ~}
 </xsl:stylesheet>
