@@ -16,7 +16,7 @@
 set -euo pipefail
 
 LIBVIRT_URI="qemu:///system"
-DEFAULT_VMS=(AD-DS-vm member01)
+DEFAULT_VMS=(AD-DS-vm member01 member02)
 # Seconds to wait for a graceful shutdown before forcing power-off.
 SHUTDOWN_TIMEOUT="${SHUTDOWN_TIMEOUT:-10}"
 
