@@ -99,6 +99,7 @@ resource "libvirt_domain" "windows_vm" {
       windows_iso          = var.iso_path
       autounattend_iso     = local.autounattend_iso
       attach_install_media = var.attach_install_media
+      vcpus                = var.vcpus
     })
   }
 

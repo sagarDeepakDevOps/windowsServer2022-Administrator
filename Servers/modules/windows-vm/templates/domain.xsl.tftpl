@@ -23,7 +23,14 @@
     <features>
       <acpi/>
       <apic/>
-      <hyperv/>
+      <!-- Recommended Hyper-V enlightenments: they let Windows use paravirtual
+           equivalents of common kernel operations, cutting CPU overhead. This is
+           the safe, well-supported baseline (no timer/synic tuning). -->
+      <hyperv>
+        <relaxed state="on"/>
+        <vapic state="on"/>
+        <spinlocks state="on" retries="8191"/>
+      </hyperv>
     </features>
     <xsl:copy>
       <xsl:apply-templates select="@*|node()"/>
@@ -94,6 +101,16 @@
       <xsl:apply-templates select="@*"/>
       <model type="qxl" ram="65536" vram="65536" vgamem="16384" heads="1" primary="yes"/>
     </video>
+  </xsl:template>
+
+  <!-- Present the vCPUs as a single socket with one core each (1 socket, N cores,
+       1 thread). Windows schedules and licenses per socket, so a single multi-core
+       socket is the correct topology for a guest rather than many 1-core sockets. -->
+  <xsl:template match="cpu">
+    <xsl:copy>
+      <xsl:apply-templates select="@*|node()"/>
+      <topology sockets="1" cores="${vcpus}" threads="1"/>
+    </xsl:copy>
   </xsl:template>
 
   <!-- Drop any OS-level <boot> so per-device boot order is authoritative. -->
