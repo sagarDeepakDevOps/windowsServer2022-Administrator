@@ -96,9 +96,9 @@ resource "libvirt_domain" "windows_vm" {
   # attaches the install/answer DVDs with boot order only when installing.
   xml {
     xslt = templatefile("${path.module}/templates/domain.xsl.tftpl", {
-      windows_iso           = var.iso_path
-      autounattend_iso      = local.autounattend_iso
-      attach_install_media  = var.attach_install_media
+      windows_iso          = var.iso_path
+      autounattend_iso     = local.autounattend_iso
+      attach_install_media = var.attach_install_media
     })
   }
 

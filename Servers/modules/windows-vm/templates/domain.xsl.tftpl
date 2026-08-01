@@ -44,6 +44,29 @@
         <readonly/>
       </disk>
 %{ endif ~}
+      <!-- USB tablet: gives the console an absolute pointer (no mouse drift or
+           offset), matching the VMware Workstation pointer experience. libvirt
+           still adds the implicit ps2 mouse/keyboard; the tablet takes over. -->
+      <xsl:if test="not(input[@type='tablet'])">
+        <input type="tablet" bus="usb"/>
+      </xsl:if>
+      <!-- QXL video: replaces libvirt's default Cirrus adapter (many more
+           resolutions and far better console performance). This must be ADDED
+           here rather than matched, because libvirt only injects its default
+           <video> when none is present, and it does so AFTER this XSLT runs. -->
+      <xsl:if test="not(video)">
+        <video>
+          <model type="qxl" ram="65536" vram="65536" vgamem="16384" heads="1" primary="yes"/>
+        </video>
+      </xsl:if>
+      <!-- SPICE vdagent channel: enables guest/host clipboard sharing and
+           automatic display resizing once spice-vdagent (from the virtio-win /
+           spice guest tools) is installed and running inside Windows. -->
+      <xsl:if test="not(channel[target/@name='com.redhat.spice.0'])">
+        <channel type="spicevmc">
+          <target type="virtio" name="com.redhat.spice.0"/>
+        </channel>
+      </xsl:if>
     </xsl:copy>
   </xsl:template>
 
@@ -63,10 +86,14 @@
     <model type="e1000e"/>
   </xsl:template>
 
-  <!-- Replace the default Cirrus adapter with QXL: many more resolutions/aspect
-       ratios and much better performance (works with the Windows inbox driver). -->
-  <xsl:template match="video/model">
-    <model type="qxl" ram="65536" vram="65536" vgamem="16384" heads="1" primary="yes"/>
+  <!-- If a <video> device is already present before this transform, force it to
+       QXL. When none is present, the <devices> template above adds one instead
+       (guarded so the two paths never produce a duplicate video device). -->
+  <xsl:template match="video">
+    <video>
+      <xsl:apply-templates select="@*"/>
+      <model type="qxl" ram="65536" vram="65536" vgamem="16384" heads="1" primary="yes"/>
+    </video>
   </xsl:template>
 
   <!-- Drop any OS-level <boot> so per-device boot order is authoritative. -->
