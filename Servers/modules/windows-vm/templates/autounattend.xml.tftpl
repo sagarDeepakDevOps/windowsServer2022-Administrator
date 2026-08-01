@@ -158,6 +158,19 @@
           <PlainText>true</PlainText>
         </Password>
       </AutoLogon>
+
+      <!-- Silently install SPICE guest tools on first logon. This provides the
+           virtio-serial driver + spice-vdagent (host<->guest clipboard) and the
+           QXL display driver (dynamic/automatic resolution, so the console fills
+           the window on any monitor). Requires guest internet (NAT provides it).
+           Runs only on a fresh unattended install (attach_install_media = true). -->
+      <FirstLogonCommands>
+        <SynchronousCommand wcm:action="add">
+          <Order>1</Order>
+          <Description>Install SPICE guest tools (clipboard + dynamic display)</Description>
+          <CommandLine>powershell -NoProfile -ExecutionPolicy Bypass -Command "try { [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; Invoke-WebRequest 'https://www.spice-space.org/download/windows/spice-guest-tools/spice-guest-tools-latest.exe' -OutFile $env:windir\Temp\spice-guest-tools.exe; Start-Process $env:windir\Temp\spice-guest-tools.exe '/S' -Wait } catch { $_ | Out-File $env:windir\Temp\spice-guest-tools-error.log }"</CommandLine>
+        </SynchronousCommand>
+      </FirstLogonCommands>
     </component>
   </settings>
 
