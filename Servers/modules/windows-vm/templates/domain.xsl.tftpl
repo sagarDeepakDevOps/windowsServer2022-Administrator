@@ -81,7 +81,14 @@
        the install DVD is present, and the first once install media is removed. -->
   <xsl:template match="devices/disk[@device='disk']">
     <xsl:copy>
-      <xsl:apply-templates select="@*|node()[not(self::target)]"/>
+      <xsl:apply-templates select="@*"/>
+      <!-- Storage tuning for the qcow2 OS disk (kept on SATA for stability, since
+           Windows Server has no inbox virtio-blk/scsi driver):
+             cache='none' + io='native' bypass the host page cache (no double
+             caching, crash-consistent), and discard='unmap' passes Windows TRIM
+             through so the sparse qcow2 file reclaims space Windows frees. -->
+      <driver name="qemu" type="qcow2" cache="none" io="native" discard="unmap"/>
+      <xsl:apply-templates select="node()[not(self::target) and not(self::driver)]"/>
       <target dev="sda" bus="sata"/>
       <boot order="${attach_install_media ? 2 : 1}"/>
     </xsl:copy>
